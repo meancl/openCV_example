@@ -1,0 +1,89 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include<stack>
+#include<opencv2/opencv.hpp>
+
+#include "opencv2/opencv.hpp"
+#ifdef _DEBUG
+	#pragma comment(lib,"opencv_world411d.lib")
+#else
+	#pragma comment(lib,"opencv_world411.lib")
+#endif
+using namespace cv;
+using namespace std;
+
+stack<Point> s;
+queue<Point> q;
+bool flag = false;
+
+static void onMouse(int event, int x, int y, int, void* data)
+{
+	
+	/*
+  // it is uncompleted example by queue
+  switch(event)
+	{
+	case EVENT_MOUSEMOVE:
+		if (flag)
+		{
+			q.push(Point(x, y));
+		}
+		break;
+	case EVENT_LBUTTONDOWN:
+		flag = true;
+		q.push(Point(x, y));
+		circle(*(Mat*)data, Point(x, y), 2, CV_RGB(255, 0, 0), 3);
+		break;
+	case EVENT_LBUTTONUP:
+		flag = false;
+		while (!q.empty())
+			q.pop();
+		break;
+	}
+  */
+  
+  // line 
+	switch (event)
+	{
+	case EVENT_MOUSEMOVE:
+		if (flag)
+		{
+			line(*(Mat*)data, s.top(), Point(x, y), CV_RGB(255, 0, 0), 3);
+			s.pop();
+			s.push(Point(x, y));
+		}
+		break;
+	case EVENT_LBUTTONDOWN:
+		flag = true;
+		line(*(Mat*)data, Point(x,y), Point(x, y), CV_RGB(255, 0, 0), 3);
+		s.push(Point(x, y));
+		break;
+	case EVENT_LBUTTONUP:
+		flag = false;
+		while (!s.empty())
+			s.pop();
+		break;
+	}
+}
+
+
+int main(void)
+{
+
+	Mat img;
+	img = imread("pic.jpg");  //image name
+	namedWindow("img", 1);
+	setMouseCallback("img", onMouse, &img);
+	imshow("img", img);
+	while (1)
+	{ 
+		imshow("img", img);
+		if (waitKey(10) > 0)
+			break;
+	}
+
+	
+	return 0;
+}
+
