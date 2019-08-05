@@ -1,0 +1,84 @@
+#include<algorithm>
+#include <iostream>
+#include "opencv2/opencv.hpp"
+#ifdef _DEBUG
+#pragma comment(lib,"opencv_world411d.lib")
+#else
+#pragma comment(lib,"opencv_world411.lib")
+#endif
+using namespace cv;
+using namespace std;
+
+bool clicked = false;
+bool copied = false;
+bool pause = false;
+Rect rect;
+Point origin;
+Mat img;
+static void onMouse(int event, int x, int y, int, void* data)
+{
+	if (clicked)
+	{
+		rect.x = min(origin.x, x);
+		rect.y = min(origin.y, y);
+		rect.width = abs(x - origin.x);
+		rect.height = abs(y - origin.y);
+		
+		//rect &= Rect(0, 0, img.cols, img.rows);
+	}
+	switch (event)
+	{
+	case EVENT_LBUTTONDOWN:
+		origin.x = x;
+		origin.y = y;
+		rect = Rect(x, y, 0, 0);
+		clicked = true;
+		break;
+	case EVENT_LBUTTONUP:
+		clicked = false;
+		
+		copied = true;
+		break;
+	}
+	
+}
+int main()
+{
+	
+	VideoCapture cap("Megamind.avi");
+	Mat frame;
+
+	//check
+	if (!cap.isOpened())
+	{
+		printf("AVI file can not open.\n");
+		return -1;
+	}
+	namedWindow("video", 1);
+    setMouseCallback("video", onMouse,NULL);
+	while (1)
+	{
+		if(!pause)
+		  cap >> frame;
+		
+		if (frame.empty())
+			break;
+		
+		//img = frame;    //it makes error that many  red rectangles included while video paused
+		frame.copyTo(img);
+		if (clicked && rect.width > 0 && rect.height > 0)
+		{
+			rectangle(img, rect, Scalar(0, 0, 255), 2);
+		}
+		if (copied)
+		{
+			Mat roi(img, rect);
+			imshow("part1", roi);
+			copied = false;
+		}
+		imshow("video", img);
+		if (waitKey(50) == 'p')
+			pause = !pause;
+	}
+	return 0;
+}
