@@ -1,0 +1,89 @@
+//
+//   while video 
+//   Drag the part of frame
+//   make it bitwise_not
+// 
+
+/*
+needed all setting for using opencv
+*/
+#include<algorithm>
+#include <iostream>
+#include "opencv2/opencv.hpp"
+#ifdef _DEBUG
+#pragma comment(lib,"opencv_world411d.lib")
+#else
+#pragma comment(lib,"opencv_world411.lib")
+#endif
+
+using namespace cv;
+using namespace std;
+
+bool clicked = false;
+Rect rect;
+Point origin;
+Mat img;
+
+/*
+call back FunC
+*/
+static void onMouse(int event, int x, int y, int, void* data)
+{
+	if (clicked)
+	{
+		rect.x = min(origin.x, x);
+		rect.y = min(origin.y, y);
+		rect.width = abs(x - origin.x);
+		rect.height = abs(y - origin.y);
+		
+		//rect &= Rect(0, 0, img.cols, img.rows);
+	}
+	switch (event)
+	{
+	case EVENT_LBUTTONDOWN:
+		origin.x = x;
+		origin.y = y;
+		rect = Rect(x, y, 0, 0);
+		clicked = true;
+		break;
+	case EVENT_LBUTTONUP:
+		clicked = false;
+		break;
+	}
+	
+}
+int main()
+{
+	
+	VideoCapture cap("Megamind.avi"); //  video name
+	Mat frame;
+
+	//check
+	if (!cap.isOpened())
+	{
+		printf("AVI file can not open.\n");
+		return -1;
+	}
+	namedWindow("video", 1);
+  setMouseCallback("video", onMouse,NULL);
+	while (1)
+	{
+		cap >> frame;
+
+		if (frame.empty())
+			break;
+		img = frame;
+		//frame.copyTo(img);
+    
+		if (clicked && rect.width > 0 && rect.height > 0)
+		{
+			Mat roi(img, rect);
+			bitwise_not(roi, roi);
+		}
+    
+		imshow("video", img);
+		if (waitKey(50) > 0)
+			break;
+	}
+	return 0;
+}
